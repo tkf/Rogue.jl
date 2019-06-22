@@ -1,4 +1,4 @@
-# Rogue
+# Rogue.jl: Utilities for dealing with unregistered packages
 
 [![Stable](https://img.shields.io/badge/docs-stable-blue.svg)](https://tkf.github.io/Rogue.jl/stable)
 [![Dev](https://img.shields.io/badge/docs-dev-blue.svg)](https://tkf.github.io/Rogue.jl/dev)
