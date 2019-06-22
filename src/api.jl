@@ -1,5 +1,5 @@
 """
-    Rogue.usein(downpath; dryrun, from, rev, commit)
+    Rogue.usein(downpath; dryrun, from, rev, commit, push)
 
 Update `(Julia)Manifest.toml` file(s) in a downstream project at
 `downpath` to use the current version of the upstream project.
@@ -41,6 +41,9 @@ Update `(Julia)Manifest.toml` file(s) in a downstream project at
   determines if the change should be committed.  If it is a `Cmd`, the
   change is committed and this is passed as options to the `git
   commit` command.
+
+- `push :: Union{Bool, Cmd} = false`: Similar to `commit` but for `git
+  push`.
 """
 function usein(
     downpath::AbstractString;
@@ -48,6 +51,7 @@ function usein(
     from::AbstractString = ".",
     rev::AbstractString = "HEAD",
     commit::Union{Bool, Cmd} = true,
+    push::Union{Bool, Cmd} = false,
 )
 
     uppkgid = pkgat(from)
@@ -71,6 +75,10 @@ function usein(
     if commit isa Cmd
         commitargs = `$commitargs $commit`
     end
+    pushargs = `push`
+    if push isa Cmd
+        pushargs = `$pushargs $push`
+    end
 
     if dryrun
         for path in manifests
@@ -84,6 +92,12 @@ function usein(
         (dry-run) Commit manifest files with message:
 
         $msg
+        """
+
+        push === false && return
+        @info """
+        (dry-run) Pushing changes to remote...
+        Execute: $(`git $pushargs`)
         """
         return
     end
@@ -105,4 +119,9 @@ function usein(
     run(git_cmd(`$commitargs -- $commitfiles`, downroot))
 
     @info "Successfully update manifest files:\n$(join(manifests, "\n"))"
+
+    push === false && return
+    @info "Pushing changes to remote..."
+    run(git_cmd(pushargs, downroot))
+    @info "Pushing changes to remote... DONE"
 end
