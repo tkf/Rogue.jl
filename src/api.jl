@@ -68,6 +68,9 @@ function usein(
     commitfiles = relpath.(manifests, downroot)
     msg = commitmessage(fullrev, uppkgid, from)
     commitargs = `commit --message $msg`
+    if commit isa Cmd
+        commitargs = `$commitargs $commit`
+    end
 
     if dryrun
         for path in manifests
@@ -76,6 +79,7 @@ function usein(
         # TODO: somehow do this inside `update_manifest`.
 
         commit == false && return
+        # TODO: parse `commitargs` to extract the correct msg
         @info """
         (dry-run) Commit manifest files with message:
 
