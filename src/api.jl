@@ -56,7 +56,7 @@ function usein(
 
     uppkgid = pkgat(from)
     fullrev = strip(read(git_cmd(`rev-parse $rev`, from), String))
-    treesha1 = strip(read(git_cmd(`rev-parse $fullrev^{tree}`, from), String))
+    treesha1 = strip(read(git_cmd(`rev-parse "$fullrev^{tree}"`, from), String))
     manifests = find_downstream_manifests(downpath, uppkgid)
     if isempty(manifests)
         @error "No manifest files found in $downpath"
