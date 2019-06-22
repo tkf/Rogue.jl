@@ -1,5 +1,5 @@
 """
-    Rogue.usein(downpath; from, rev, commit)
+    Rogue.usein(downpath; dryrun, from, rev, commit)
 
 Update `(Julia)Manifest.toml` file(s) in a downstream project at
 `downpath` to use the current version of the upstream project.
@@ -29,6 +29,9 @@ Update `(Julia)Manifest.toml` file(s) in a downstream project at
 
 
 # Keyword Arguments
+- `dryrun :: Bool = false`: If `true`, only print the operations that
+  would be done.
+
 - `from :: AbstractString = "."`: Specify the location of the upstream
   project.
 
@@ -41,6 +44,7 @@ Update `(Julia)Manifest.toml` file(s) in a downstream project at
 """
 function usein(
     downpath::AbstractString;
+    dryrun::Bool = false,
     from::AbstractString = ".",
     rev::AbstractString = "HEAD",
     commit::Union{Bool, Cmd} = true,
@@ -57,6 +61,29 @@ function usein(
     if !git_is_clean(downpath)
         error("Git repository at `$downpath` has un-committed files.")
     end
+
+    # Preparing commit message now so that it works nicely with
+    # `dryrun=true`:
+    downroot = strip(read(git_cmd(`rev-parse --show-toplevel`, downpath), String))
+    commitfiles = relpath.(manifests, downroot)
+    msg = commitmessage(fullrev, uppkgid, from)
+    commitargs = `commit --message $msg`
+
+    if dryrun
+        for path in manifests
+            @info "(dry-run) $path would be updated."
+        end
+        # TODO: somehow do this inside `update_manifest`.
+
+        commit == false && return
+        @info """
+        (dry-run) Commit manifest files with message:
+
+        $msg
+        """
+        return
+    end
+
     for path in manifests
         @info "Updating $path"
         update_manifest(path, uppkgid, treesha1)
@@ -70,10 +97,6 @@ function usein(
         return
     end
 
-    downroot = strip(read(git_cmd(`rev-parse --show-toplevel`, downpath), String))
-    commitfiles = relpath.(manifests, downroot)
-    msg = commitmessage(fullrev, uppkgid, from)
-    commitargs = `commit --message $msg`
     run(git_cmd(`add -- $commitfiles`, downroot))
     run(git_cmd(`$commitargs -- $commitfiles`, downroot))
 
