@@ -4,6 +4,8 @@
 Update `(Julia)Manifest.toml` file(s) in a downstream project at
 `downpath` to use the current version of the upstream project.
 
+* Make sure that the downstream project has no un-committed changes.
+
 * If `manifests` is `nothing` (default), find all `JuliaManifest.toml` and
   `Manifest.toml` file(s) that are tracked by git and have the
   upstream project as a dependency.
@@ -36,6 +38,9 @@ function usein(
     if isempty(manifests)
         @error "No manifest files found in $downpath"
         return
+    end
+    if !git_is_clean(downpath)
+        error("Git repository at `$downpath` has un-committed files.")
     end
     for path in manifests
         @info "Updating $path"

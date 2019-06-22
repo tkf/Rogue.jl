@@ -13,3 +13,6 @@ function tempbak(name::AbstractString)
     rename(name, newname)
     return newname
 end
+
+git_is_clean(path::AbstractString) =
+    isempty(read(setenv(`git --no-pager status --short --untracked-files=no`; dir=path)))
