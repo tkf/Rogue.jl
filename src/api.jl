@@ -18,6 +18,11 @@ Update `(Julia)Manifest.toml` file(s) in a downstream project at
       upstream project is available in the repository referenced by
       the downstream manifest files (i.e., `git push`ed).
 
+* Commit the changed manifest files with a git commit message
+  generated from the upstream commit.  In particular, it contains a
+  URL to the commit page of the VCS hosting service used by the
+  upstream project.
+
 
 # Arguments
 - `downpath :: AbstractString`: Path to the downstream project.
@@ -33,7 +38,8 @@ function usein(
 )
 
     uppkgid = pkgat(from)
-    treesha1 = strip(read(setenv(`git rev-parse 'HEAD^{tree}'`; dir=from), String))
+    fullrev = strip(read(git_cmd(`rev-parse HEAD`, from), String))
+    treesha1 = strip(read(git_cmd(`rev-parse $fullrev^{tree}`, from), String))
     manifests = find_downstream_manifests(downpath, uppkgid)
     if isempty(manifests)
         @error "No manifest files found in $downpath"
@@ -46,4 +52,17 @@ function usein(
         @info "Updating $path"
         update_manifest(path, uppkgid, treesha1)
     end
+    if git_is_clean(downpath)
+        @info "No updates were required in `$downpath`."
+        return
+    end
+
+    downroot = strip(read(git_cmd(`rev-parse --show-toplevel`, downpath), String))
+    commitfiles = relpath.(manifests, downroot)
+    msg = commitmessage(fullrev, uppkgid, from)
+    commitargs = `commit --message $msg`
+    run(git_cmd(`add -- $commitfiles`, downroot))
+    run(git_cmd(`$commitargs -- $commitfiles`, downroot))
+
+    @info "Successfully update manifest files:\n$(join(manifests, "\n"))"
 end

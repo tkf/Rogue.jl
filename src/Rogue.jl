@@ -3,6 +3,7 @@ module Rogue
 using Base.Filesystem: rename
 using Base: PkgId
 using Pkg: Pkg, TOML
+using PyCall: pyimport
 using Transducers
 using UUIDs
 

@@ -14,5 +14,23 @@ function tempbak(name::AbstractString)
     return newname
 end
 
+ensuredir(path) = isdir(path) ? path : dirname(path)
+
+git_cmd(args::Cmd=``, dir::AbstractString=".") =
+    setenv(`git --no-pager $args`; dir=ensuredir(dir))
+
 git_is_clean(path::AbstractString) =
-    isempty(read(setenv(`git --no-pager status --short --untracked-files=no`; dir=path)))
+    isempty(read(git_cmd(`status --short --untracked-files=no`, path)))
+
+vcslinktocommit(args...; kwargs...) =
+    pyimport("vcslinks").commit(args...; kwargs...)
+
+function commitmessage(fullrev, uppkgid::PkgId, from)
+    link = vcslinktocommit(fullrev, path=from)
+    subject = strip(read(git_cmd(`show --format=format:%s --no-patch`, from), String))
+    return """
+    $(uppkgid.name): $subject
+
+    $link
+    """
+end

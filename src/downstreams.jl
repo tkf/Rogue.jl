@@ -1,7 +1,5 @@
 function _find_downstream_manifests(repo::AbstractString)
-    if !isdir(repo)
-        repo = dirname(repo)
-    end
+    repo = ensuredir(repo)
     paths = filter(readlines(setenv(`git --no-pager ls-files`; dir=repo))) do path
         basename(path) ∈ ("JuliaManifest.toml", "Manifest.toml")
     end
