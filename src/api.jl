@@ -1,5 +1,5 @@
 """
-    Rogue.usein(downpath; from)
+    Rogue.usein(downpath; from, rev, commit)
 
 Update `(Julia)Manifest.toml` file(s) in a downstream project at
 `downpath` to use the current version of the upstream project.
@@ -31,14 +31,23 @@ Update `(Julia)Manifest.toml` file(s) in a downstream project at
 # Keyword Arguments
 - `from :: AbstractString = "."`: Specify the location of the upstream
   project.
+
+- `rev :: AbstractString = "HEAD"`: Revision of the upstream project.
+
+- `commit :: Union{Bool, Cmd} = true`: If it is a `Bool`, it
+  determines if the change should be committed.  If it is a `Cmd`, the
+  change is committed and this is passed as options to the `git
+  commit` command.
 """
 function usein(
     downpath::AbstractString;
     from::AbstractString = ".",
+    rev::AbstractString = "HEAD",
+    commit::Union{Bool, Cmd} = true,
 )
 
     uppkgid = pkgat(from)
-    fullrev = strip(read(git_cmd(`rev-parse HEAD`, from), String))
+    fullrev = strip(read(git_cmd(`rev-parse $rev`, from), String))
     treesha1 = strip(read(git_cmd(`rev-parse $fullrev^{tree}`, from), String))
     manifests = find_downstream_manifests(downpath, uppkgid)
     if isempty(manifests)
@@ -54,6 +63,10 @@ function usein(
     end
     if git_is_clean(downpath)
         @info "No updates were required in `$downpath`."
+        return
+    end
+    if commit === false
+        @info "`commit=false` is specified. Skipping commit."
         return
     end
 
