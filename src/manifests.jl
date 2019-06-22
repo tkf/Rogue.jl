@@ -1,4 +1,4 @@
-project_chunks() = ScanEmit((name="", lines=String[])) do chunk, current
+project_chunks() = ScanEmit((name="", lines=String[]), identity) do chunk, current
     m = match(r"^\[\[(.*)\]\]", current)
     if m !== nothing
         return chunk, (name=m.captures[1], lines=String[current])
@@ -38,7 +38,12 @@ updating_manifest(pkg, treesha1) =
     Cat()
 
 haspkg(manifest, pkg::PkgId) =
-    foldl(project_chunks(), aslines(manifest), init=false) do _, chunk
+    foldl(project_chunks(), aslines(manifest), init=false) do s, chunk
+
+        # This is required for using `onlast` in `ScanEmit`.  Should
+        # it be considered a bug in Transducers.jl?
+        s && return true
+
         samepkg(chunk, pkg) && return reduced(true)
         return false
     end
