@@ -30,7 +30,7 @@ Update `(Julia)Manifest.toml` file(s) in a downstream project at
 
 # Keyword Arguments
 - `dryrun :: Bool = false`: If `true`, only print the operations that
-  would be done.
+  would be performed.
 
 - `from :: AbstractString = "."`: Specify the location of the upstream
   project.
@@ -128,10 +128,15 @@ end
 
 
 """
-    add(name; project)
+    Rogue.add(name; project)
+
+Install an unregistered package checked out at `~/.julia/dev/\$name`.
+Its unregistered dependencies are installed using information stored
+in `Manifest.toml` file checked in its repository (e.g.,
+`~/.julia/dev/\$name/test/Manifest.toml`).
 
 # Arguments
-- `name::AbstractString`
+- `name::AbstractString`: Name of the package to be installed.
 
 # Keyword Arguments
 - `project::AbstractString`:
