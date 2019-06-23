@@ -5,6 +5,7 @@ makedocs(;
     format=Documenter.HTML(),
     pages=[
         "Home" => "index.md",
+        hide("Internals" => "internals.md"),
     ],
     repo="https://github.com/tkf/Rogue.jl/blob/{commit}{path}#L{line}",
     sitename="Rogue.jl",

@@ -52,3 +52,12 @@ function commitmessage(fullrev, uppkgid::PkgId, from)
     $link
     """
 end
+
+function _is_api(f)
+    for m in methods(f)
+        if m.file === Symbol(joinpath(@__DIR__, "api.jl"))
+            return true
+        end
+    end
+    return false
+end

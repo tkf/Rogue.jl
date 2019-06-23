@@ -127,6 +127,11 @@ function manifest_entry_to_pkgspec(name, entry)
     return spec
 end
 
+"""
+    _add_private_projects(private_projects)
+
+Call `Pkg.add` for private projects.  Most upstream first.
+"""
 function _add_private_projects(private_projects::Dict)
     added = Set{String}()
     for name in keys(private_projects)
