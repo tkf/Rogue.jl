@@ -125,3 +125,48 @@ function usein(
     run(git_cmd(pushargs, downroot))
     @info "Pushing changes to remote... DONE"
 end
+
+
+"""
+    add(name; project)
+
+# Arguments
+- `name::AbstractString`
+
+# Keyword Arguments
+- `project::AbstractString`:
+"""
+function add(name::AbstractString; project=".")
+    path = joinpath(expanduser("~/.julia/dev"), name)  # TODO: don't
+    @assert isdir(path)
+
+    function sortkey(p)
+        r = relpath(p, path)
+        rank = get(Dict(
+            "" => 0,
+            "test" => 1,
+            "docs" => 2,
+        ), dirname(r), typemax(Int))
+        return (rank, r)
+    end
+    manifestfile, = sort(find_manifests(path), by=sortkey)
+    spec = pkgspecof(path)
+
+    @info "Installing private package from: $(spec.repo.url)"
+    @info "Installing private dependencies from: $manifestfile"
+    local private_projects
+    temporaryactivating(project) do
+        private_projects = add_private_projects_from(manifestfile)
+        Pkg.add(spec)
+    end
+
+    deps = join(keys(private_projects), "    \n")
+    @info """
+    Added:
+        $name
+    Private dependencies:
+        $deps
+    """
+
+    return
+end

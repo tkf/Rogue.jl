@@ -1,4 +1,4 @@
-function _find_downstream_manifests(repo::AbstractString)
+function find_manifests(repo::AbstractString)
     repo = ensuredir(repo)
     paths = filter(readlines(setenv(`git --no-pager ls-files`; dir=repo))) do path
         basename(path) ∈ ("JuliaManifest.toml", "Manifest.toml")
@@ -10,4 +10,4 @@ _manifests_with(manifestpaths::Vector{String}, dep::PkgId) =
     filter(path -> haspkg(path, dep), manifestpaths)
 
 find_downstream_manifests(repo::AbstractString, upstream::PkgId) =
-    _manifests_with(_find_downstream_manifests(repo), upstream)
+    _manifests_with(find_manifests(repo), upstream)

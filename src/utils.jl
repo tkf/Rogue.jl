@@ -1,10 +1,28 @@
 existingfile(path) = isfile(path) ? path : nothing
 
+_tomlpath(dir, candidates) =
+    something(existingfile.(joinpath.(dir, candidates))...,
+              joinpath(dir, candidates[2]))
+
+projecttomlpath(dir) = _tomlpath(dir, ("JuliaProject.toml", "Project.toml"))
+manifesttomlpath(dir) = _tomlpath(dir, ("JuliaManifest.toml", "Manifest.toml"))
+
 function pkgat(path::AbstractString) :: PkgId
-    prj = TOML.parsefile(something(
-        existingfile.(joinpath.(path, ("JuliaProject.toml", "Project.toml")))...
-    ))
+    prj = TOML.parsefile(projecttomlpath(path))
     return PkgId(UUID(prj["uuid"]), prj["name"])
+end
+
+function pkgspecof(path::AbstractString)
+    prj = TOML.parsefile(projecttomlpath(path))
+    url = strip(read(git_cmd(`config remote.origin.url`, path), String))
+    tree_sha = strip(read(git_cmd(`rev-parse "HEAD^{tree}"`, path), String))
+    spec = Pkg.PackageSpec(
+        name = prj["name"],
+        uuid = prj["uuid"],
+        url = url,
+    )
+    @set! spec.repo.tree_sha = Base.SHA1(tree_sha)
+    return spec
 end
 
 function tempbak(name::AbstractString)
