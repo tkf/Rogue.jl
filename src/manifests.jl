@@ -68,9 +68,10 @@ function withbackup(f, orig::AbstractString)
 end
 
 function temporaryactivating(f, project)
+    project === nothing && return f()
     try
         Pkg.activate(project)
-        f()
+        return f()
     finally
         Pkg.activate()
     end

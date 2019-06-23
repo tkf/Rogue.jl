@@ -139,9 +139,14 @@ in `Manifest.toml` file checked in its repository (e.g.,
 - `name::AbstractString`: Name of the package to be installed.
 
 # Keyword Arguments
-- `project::AbstractString`:
+- `project::Union{Nothing, AbstractString} = nothing`: Project
+  in which the package is installed.  `nothing` (default) means
+  the current activated project.
 """
-function add(name::AbstractString; project=".")
+function add(
+    name::AbstractString;
+    project::Union{Nothing, AbstractString} = nothing,
+)
     path = joinpath(expanduser("~/.julia/dev"), name)  # TODO: don't
     @assert isdir(path)
 
