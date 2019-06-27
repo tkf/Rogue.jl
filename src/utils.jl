@@ -14,7 +14,7 @@ end
 
 function pkgspecof(path::AbstractString)
     prj = TOML.parsefile(projecttomlpath(path))
-    url = strip(read(git_cmd(`config remote.origin.url`, path), String))
+    url = vcslinktoroot(path=path)
     tree_sha = strip(read(git_cmd(`rev-parse "HEAD^{tree}"`, path), String))
     spec = Pkg.PackageSpec(
         name = prj["name"],
@@ -39,6 +39,9 @@ git_cmd(args::Cmd=``, dir::AbstractString=".") =
 
 git_is_clean(path::AbstractString) =
     isempty(read(git_cmd(`status --short --untracked-files=no`, path)))
+
+vcslinktoroot(args...; kwargs...) =
+    pyimport("vcslinks").root(args...; kwargs...)
 
 vcslinktocommit(args...; kwargs...) =
     pyimport("vcslinks").commit(args...; kwargs...)
