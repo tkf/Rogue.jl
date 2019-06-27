@@ -1,5 +1,7 @@
 module Rogue
 
+@doc read(joinpath(dirname(@__DIR__), "README.md"), String) Rogue
+
 using Base.Filesystem: rename
 using Base: PkgId
 using Pkg: Pkg, TOML
