@@ -145,7 +145,7 @@ function _add_private_project!(added::Set, private_projects::Dict, name::String)
     entry = private_projects[name]
     spec = manifest_entry_to_pkgspec(name, entry)
     @info "Adding $spec"
-    for dep in entry["deps"]
+    for dep in get(entry, "deps", String[])
         haskey(private_projects, dep) || continue
         _add_private_project!(added, private_projects, dep)
     end
