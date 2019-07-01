@@ -129,13 +129,13 @@ function manifest_entry_to_pkgspec(name, entry)
 end
 
 """
-    _add_private_projects(private_projects)
+    _add_private_projects(private_deps, private_projects)
 
 Call `Pkg.add` for private projects.  Most upstream first.
 """
-function _add_private_projects(private_projects::Dict)
+function _add_private_projects(private_deps, private_projects::Dict)
     added = Set{String}()
-    for name in keys(private_projects)
+    for name in private_deps
         _add_private_project!(added, private_projects, name)
     end
 end
@@ -154,7 +154,7 @@ function _add_private_project!(added::Set, private_projects::Dict, name::String)
     return
 end
 
-function add_private_projects_from(manifestfile::AbstractString)
+function add_private_projects_from(deps, manifestfile::AbstractString)
     manifest = TOML.parsefile(manifestfile)
 
     # Extract all private projects:
@@ -167,7 +167,11 @@ function add_private_projects_from(manifestfile::AbstractString)
         manifest,
     ))
     # TODO: make sure that there is no duplicated names (but is it possible?)
-    _add_private_projects(private_projects)
+    private_deps = intersect(deps, keys(private_projects))
+    _add_private_projects(private_deps, private_projects)
 
-    return private_projects
+    return (
+        deps = private_deps,
+        projects = private_projects,
+    )
 end

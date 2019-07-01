@@ -161,21 +161,32 @@ function add(
     end
     manifestfile, = sort(find_manifests(path), by=sortkey)
     spec = pkgspecof(path)
+    deps = keys(get(
+        TOML.parsefile(projecttomlpath(path)),
+        "deps",
+        Dict{String,String}(),
+    ))
 
     @info "Installing private package from: $(spec.repo.url)"
     @info "Installing private dependencies from: $manifestfile"
-    local private_projects
+    local private
     temporaryactivating(project) do
-        private_projects = add_private_projects_from(manifestfile)
+        private = add_private_projects_from(deps, manifestfile)
         Pkg.add(spec)
     end
 
-    deps = join(keys(private_projects), "    \n")
+    if isempty(private.deps)
+        private_deps = ""
+    else
+        private_deps = """
+        with private dependencies:
+            $(join(private.deps, "\n    "))
+        """
+    end
     @info """
     Added:
         $name
-    Private dependencies:
-        $deps
+    $private_deps
     """
 
     return
