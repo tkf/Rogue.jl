@@ -50,8 +50,10 @@ function commitmessage(fullrev, uppkgid::PkgId, from)
     link = vcslinktocommit(fullrev, path=from)
     subject = strip(read(git_cmd(`show --format=format:%s --no-patch`, from), String))
     return """
-    $(uppkgid.name): $subject
+    Update: $(uppkgid.name)
 
+    Using commit:
+    $subject
     $link
     """
 end
