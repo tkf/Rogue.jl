@@ -85,6 +85,8 @@ function update_manifest(manifest::AbstractString, pkg, treesha1)
             end
         end
         temporaryactivating(dirname(manifest)) do
+            Pkg.instantiate()
+            # Do I need `Pkg.resolve`?
             Pkg.resolve()
         end
     end
