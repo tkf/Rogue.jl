@@ -156,18 +156,18 @@ function _add_private_project!(added::Set, private_projects::Dict, name::String)
     return
 end
 
+private_projects_in_manifest() =
+    MapCat() do (name, entries)
+        tuple.(name, entries)
+    end |> Filter() do (name, entry)
+        haskey(entry, "repo-url")
+    end
+
 function add_private_projects_from(deps, manifestfile::AbstractString)
     manifest = TOML.parsefile(manifestfile)
 
     # Extract all private projects:
-    private_projects = Dict(eduction(
-        MapCat() do (name, entries)
-            tuple.(name, entries)
-        end |> Filter() do (name, entry)
-            haskey(entry, "repo-url")
-        end,
-        manifest,
-    ))
+    private_projects = Dict(eduction(private_projects_in_manifest(), manifest))
     # TODO: make sure that there is no duplicated names (but is it possible?)
     private_deps = intersect(deps, keys(private_projects))
     _add_private_projects(private_deps, private_projects)

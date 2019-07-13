@@ -227,3 +227,46 @@ addin(
     package::AbstractString = ".";
     kwargs...,
 ) = add(package, project=project; kwargs...)
+
+"""
+    Rogue.status()
+    Rogue.status(project::String)
+"""
+function status(
+    project::Union{Nothing, AbstractString} = nothing,
+)
+
+    if project === nothing
+        project = dirname(Base.active_project())
+    end
+    manifest = TOML.parsefile(manifesttomlpath(project))
+    foreach(private_projects_in_manifest(), manifest) do (name, entry)
+        haskey(entry, "git-tree-sha1") || return  # possible?
+
+        url = entry["repo-url"]
+        treesha1 = entry["git-tree-sha1"]
+        uuid = entry["uuid"]
+
+        spec = Pkg.PackageSpec(
+            name = name,
+            uuid = uuid,
+            url = url,
+        )
+        path = Pkg.Types.fresh_clone(spec)
+        try
+            open(git_cmd(`log --format=format:'%H %T'`, path)) do stream
+                while !eof(stream)
+                    ln = readline(stream)
+                    logcommit, logtree = split(ln, " ", limit=2)
+                    if logtree == treesha1
+                        run(git_cmd(`log --max-count=1 --oneline $logcommit`, path))
+                        return
+                    end
+                end
+                @warn "Tree SHA `$treesha1` not found for package `$name` [$uuid]"
+            end
+        finally
+            rm(path; force=true, recursive=true)
+        end
+    end
+end
