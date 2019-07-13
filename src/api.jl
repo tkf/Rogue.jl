@@ -52,6 +52,8 @@ function usein(
     rev::AbstractString = "HEAD",
     commit::Union{Bool, Cmd} = true,
     push::Union{Bool, Cmd} = false,
+    committitle::Union{Nothing, AbstractString} = nothing,
+    commitcomment::Union{Nothing, AbstractString} = nothing,
 )
 
     uppkgid = pkgat(from)
@@ -70,8 +72,11 @@ function usein(
     # `dryrun=true`:
     downroot = strip(read(git_cmd(`rev-parse --show-toplevel`, downpath), String))
     commitfiles = relpath.(manifests, downroot)
-    msg = commitmessage(fullrev, uppkgid, from)
+    msg = commitmessage(fullrev, uppkgid, from, committitle, commitcomment)
     commitargs = `commit --message $msg`
+    if !(committitle === nothing && commitcomment === nothing)
+        commitargs = `$commitargs --allow-empty`
+    end
     if commit isa Cmd
         commitargs = `$commitargs $commit`
     end
@@ -106,7 +111,7 @@ function usein(
         @info "Updating $path"
         update_manifest(path, uppkgid, treesha1)
     end
-    if git_is_clean(downpath)
+    if git_is_clean(downpath) && committitle === nothing && commitcomment === nothing
         @info "No updates were required in `$downpath`."
         return
     end

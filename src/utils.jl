@@ -46,16 +46,17 @@ vcslinktoroot(args...; kwargs...) =
 vcslinktocommit(args...; kwargs...) =
     pyimport("vcslinks").commit(args...; kwargs...)
 
-function commitmessage(fullrev, uppkgid::PkgId, from)
+function commitmessage(fullrev, uppkgid::PkgId, from, title, comment)
     link = vcslinktocommit(fullrev, path=from)
     subject = strip(read(git_cmd(`show --format=format:%s --no-patch`, from), String))
-    return """
-    Update: $(uppkgid.name)
-
+    title = rstrip(something(title, "Update: $(uppkgid.name)"))
+    comment = rstrip(something(comment, ""))
+    footer = """
     Using commit:
     $subject
     $link
     """
+    return join([title, comment, footer], "\n\n")
 end
 
 function _is_api(f)
