@@ -128,6 +128,18 @@ end
 
 
 """
+    Rogue.updateto(upstream; kwargs...)
+
+A shortcut for `Rogue.usein(".", from=upstream)`.
+"""
+function updateto(upstream; downpath=".", from=nothing, kwargs...)
+    if from !== nothing
+        throw(ArgumentError("Use `usein` to specify `from` as a keyword argument."))
+    end
+    usein(downpath; from=upstream, kwargs...)
+end
+
+"""
     Rogue.add(name; project)
 
 Install an unregistered package checked out at `~/.julia/dev/\$name`.
