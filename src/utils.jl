@@ -48,7 +48,12 @@ vcslinktocommit(args...; kwargs...) =
 
 function commitmessage(fullrev, uppkgid::PkgId, from, title, comment)
     link = vcslinktocommit(fullrev, path=from)
-    subject = strip(read(git_cmd(`show --format=format:%s --no-patch`, from), String))
+    subject = strip(
+        read(
+            git_cmd(`show --format=format:%s --no-patch $fullrev`, from),
+            String,
+        ),
+    )
     title = rstrip(something(title, "Update: $(uppkgid.name)"))
     comment = rstrip(something(comment, ""))
     footer = """
