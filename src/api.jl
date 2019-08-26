@@ -159,10 +159,13 @@ in `Manifest.toml` file checked in its repository (e.g.,
 - `project::Union{Nothing, AbstractString} = nothing`: Project
   in which the package is installed.  `nothing` (default) means
   the current activated project.
+- `prefer_https::Bool = false`: Prefer HTTPS repository URL rather
+  than the one used in Git repository.
 """
 function add(
     name::AbstractString;
     project::Union{Nothing, AbstractString} = nothing,
+    prefer_https::Bool = false,
 )
     path = joinpath(expanduser("~/.julia/dev"), name)  # TODO: don't
     @assert isdir(path)
@@ -177,7 +180,7 @@ function add(
         return (rank, r)
     end
     manifestfile, = sort(find_manifests(path), by=sortkey)
-    spec = pkgspecof(path)
+    spec = pkgspecof(path; prefer_https=prefer_https)
     deps = keys(get(
         TOML.parsefile(projecttomlpath(path)),
         "deps",

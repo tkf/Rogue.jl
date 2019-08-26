@@ -12,9 +12,13 @@ function pkgat(path::AbstractString) :: PkgId
     return PkgId(UUID(prj["uuid"]), prj["name"])
 end
 
-function pkgspecof(path::AbstractString)
+function pkgspecof(path::AbstractString; prefer_https=false)
     prj = TOML.parsefile(projecttomlpath(path))
-    url = vcslinktoroot(path=path)
+    if prefer_https
+        url = vcslinktoroot(path=path)
+    else
+        url = strip(read(git_cmd(`config remote.origin.url`, path), String))
+    end
     tree_sha = strip(read(git_cmd(`rev-parse "HEAD^{tree}"`, path), String))
     spec = Pkg.PackageSpec(
         name = prj["name"],
