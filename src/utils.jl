@@ -25,9 +25,21 @@ function pkgspecof(path::AbstractString; prefer_https=false)
         uuid = prj["uuid"],
         url = url,
     )
-    @set! spec.repo.tree_sha = Base.SHA1(tree_sha)
+    @set! tree_hash(spec) = Base.SHA1(tree_sha)
     return spec
 end
+
+tree_hash(spec) =
+    isdefined(spec, :tree_hash) ? spec.tree_hash : spec.repo.tree_sha
+
+Setfield.set(spec, ::typeof(@lens tree_hash(_)), value) =
+    if isdefined(spec, :tree_hash)
+        # Julia 1.2
+        @set spec.tree_hash = value
+    else
+        # Julia 1.1
+        @set spec.repo.tree_sha = value
+    end
 
 function tempbak(name::AbstractString)
     newname, io = mktemp(dirname(name))

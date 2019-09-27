@@ -126,7 +126,7 @@ function manifest_entry_to_pkgspec(name, entry)
         url = get(entry, "repo-url", nothing),
         rev = get(entry, "repo-rev", nothing),
     )
-    @set! spec.repo.tree_sha = Base.SHA1(entry["git-tree-sha1"])
+    @set! tree_hash(spec) = Base.SHA1(entry["git-tree-sha1"])
     return spec
 end
 
