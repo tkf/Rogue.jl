@@ -167,7 +167,12 @@ function add(
     project::Union{Nothing, AbstractString} = nothing,
     prefer_https::Bool = false,
 )
-    path = joinpath(expanduser("~/.julia/dev"), name)  # TODO: don't
+    if isdir(name)
+        path = name
+        name = basename(path)
+    else
+        path = joinpath(expanduser("~/.julia/dev"), name)  # TODO: don't
+    end
     @assert isdir(path)
 
     function sortkey(p)
@@ -211,3 +216,14 @@ function add(
 
     return
 end
+
+"""
+    Rogue.addin(project; package=".", kwargs...)
+
+A shortcut for `Rogue.add(package; project=project, kwargs...)`.
+"""
+addin(
+    project::AbstractString,
+    package::AbstractString = ".";
+    kwargs...,
+) = add(package, project=project; kwargs...)
