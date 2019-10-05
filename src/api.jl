@@ -61,7 +61,7 @@ function usein(
     treesha1 = strip(read(git_cmd(`rev-parse "$fullrev^{tree}"`, from), String))
     manifests = find_downstream_manifests(downpath, uppkgid)
     if isempty(manifests)
-        @error "No manifest files found in $downpath"
+        @error "No git-tracked manifest files containing $uppkgid found in $downpath"
         return
     end
     if !git_is_clean(downpath)
